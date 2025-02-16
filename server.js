@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
+import bcrypt, { compare } from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cors from "cors";
 
@@ -29,8 +29,9 @@ const User = mongoose.model("User", UserSchema);
 app.post("/register", async(req, res) => {
   try {
     const {email, password, userType} = req.body;
+    console.log(email, password, userType);
 
-    const existingUser = await user.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({ error:"User already exists!" });
     }
@@ -55,9 +56,9 @@ app.post("/register", async(req, res) => {
 // Login route
 app.post("/login", async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, userType } = req.body;
     
-    console.log(email, password);
+    console.log(email, password, userType);
     // Check if user exists
     const user = await User.findOne({ email: email.toLowerCase() });
     console.log("User found:", user);
@@ -70,6 +71,10 @@ app.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid password!" });
+    }
+
+    if (userType != user.userType) {
+      return res.status(400).json({ error: "Invalid user type!" });
     }
 
     // Generate JWT token

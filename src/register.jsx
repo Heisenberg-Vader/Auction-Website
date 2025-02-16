@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const Login = ({ onNavigate }) => {
+const Register = () => {
   const [userType, setUserType] = useState('client'); // 'client' or 'admin'
   const [formData, setFormData] = useState({
     email: '',
@@ -14,9 +14,9 @@ const Login = ({ onNavigate }) => {
     // Merge userType into formData so it goes to the backend
     const payload = { ...formData, userType };
 
-    console.log('Login attempted for:', payload);
+    console.log('Registration attempted for:', payload);
 
-    const response = await fetch("http://localhost:5000/login", {
+    const response = await fetch("http://localhost:5000/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload), // Include userType here
@@ -26,7 +26,7 @@ const Login = ({ onNavigate }) => {
     
     if (response.ok) {
       localStorage.setItem("token", data.token);
-      alert("Login successful");
+      alert("Registeration successful");
     } else {
       alert(data.error);
     }
@@ -45,31 +45,7 @@ const Login = ({ onNavigate }) => {
       <div className="w-full max-w-md mx-auto">
         <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h1 className="text-3xl font-bold text-center text-gray-900">Login</h1>
-            
-            {/* Toggle buttons for user type */}
-            <div className="flex justify-center space-x-4 mt-4">
-              <button
-                onClick={() => setUserType('client')}
-                className={`px-4 py-2 rounded-md ${
-                  userType === 'client'
-                    ? 'bg-blue-500 text-white hover:bg-blue-600 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
-                }`}
-              >
-                Client
-              </button>
-              <button
-                onClick={() => setUserType('admin')}
-                className={`px-4 py-2 rounded-md ${
-                  userType === 'admin'
-                    ? 'bg-blue-500 text-white hover:bg-blue-600 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
-                }`}
-              >
-                Admin
-              </button>
-            </div>
+            <h1 className="text-3xl font-bold text-center text-gray-900">Sign Up</h1>
           </div>
 
           <div className="px-6 py-6">
@@ -105,21 +81,6 @@ const Login = ({ onNavigate }) => {
                   required
                 />
               </div>
-
-              <div>
-                <span 
-                  className="flex text-xs px-2">Don't have an account?
-                  <a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onNavigate("register");
-                    }}
-                    className="block text-xs px-1 font-medium text-blue-700 cursor-pointer">
-                    Sign Up
-                  </a>
-                </span>
-              </div>
               
               <button
                 type="submit"
@@ -127,7 +88,7 @@ const Login = ({ onNavigate }) => {
                 shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 duration-500 focus:outline-none
                 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Login as {userType === 'client' ? 'Client' : 'Admin'}
+                Sign up
               </button>
             </form>
           </div>
@@ -137,4 +98,4 @@ const Login = ({ onNavigate }) => {
   );
 };
 
-export default Login;
+export default Register;

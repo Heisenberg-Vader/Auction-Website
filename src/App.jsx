@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Login from "./login";
+import Register from "./register"
 
 const NavBar = ({ onNavigate }) => {
   return (
@@ -121,7 +122,7 @@ export default function App() {
 
       {currentPage === "home" && <AuctionDropdown onSelectAuction={handleSelectAuction} isLoggedIn={isLoggedIn} />}
       {currentPage === "login" && <Login onLogin={() => setIsLoggedIn(true)} onNavigate={navigateTo} />}
-      {currentPage === "dashboard" && selectedAuction && <Dashboard selectedAuction={selectedAuction} />}
+      {currentPage === "register" && <Register onNavigate={navigateTo}/>}
     </div>
   );
 }
