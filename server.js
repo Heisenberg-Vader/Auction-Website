@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
-import bcrypt, { compare } from "bcryptjs";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import cors from "cors";
+import nodemailer from "nodemailer";
+import crypto from "crypto";
 
 dotenv.config(); // Load environment variables
 
@@ -19,65 +21,119 @@ mongoose
 
 // User schema and model
 const UserSchema = new mongoose.Schema({
-  email:    { type: String, required: true, unique: true, lowercase: true},
+  email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
   userType: { type: String, required: true },
+  verified: { type: Boolean, default: false },
+  verificationToken: { type: String },
 });
 
 const User = mongoose.model("User", UserSchema);
 
-app.post("/register", async(req, res) => {
+// Configure email transporter
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "noreply.auctionquiz@gmail.com",
+    pass: "sffotcermdlvmbql", 
+  },
+});
+
+// Send email verification
+const sendVerificationEmail = async (email, token) => {
+  const verificationLink = `http://localhost:5000/verify?token=${token}`;
+
+  const mailOptions = {
+    from: "noreply.auctionquiz@gmail.com",
+    to: email,
+    subject: "Email Verification",
+    text: `Click the link to verify your email: ${verificationLink}`,
+  };
+
   try {
-    const {email, password, userType} = req.body;
-    console.log(email, password, userType);
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Verification email sent:", info.response);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
+};
+
+// Register route with email verification
+app.post("/register", async (req, res) => {
+  try {
+    const { email, password, userType } = req.body;
 
     const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
-      return res.status(400).json({ error:"User already exists!" });
+      return res.status(400).json({ error: "User already exists!" });
     }
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
+    const verificationToken = crypto.randomBytes(32).toString("hex");
 
     const newUser = new User({
       email,
       password: hashedPassword,
       userType,
-    })
+      verified: false, 
+      verificationToken,
+    });
 
     await newUser.save();
-    res.status(201).json({ message:"User registered succesfully!" });
+    sendVerificationEmail(email, verificationToken);
+
+    res.status(201).json({ message: "User registered! Check email to verify." });
   } catch (error) {
-    console.log("Registration error: ", error);
-    return res.status(500).json({ error:"Internal server error!" });
+    console.log("Registration error:", error);
+    return res.status(500).json({ error: "Internal server error!" });
   }
 });
 
-// Login route
+// Email verification route
+app.get("/verify", async (req, res) => {
+  try {
+    const { token } = req.query;
+    const user = await User.findOne({ verificationToken: token });
+
+    if (!user) {
+      return res.status(400).json({ error: "Invalid or expired token!" });
+    }
+
+    user.verified = true;
+    user.verificationToken = null; 
+    await user.save();
+
+    res.status(200).json({ message: "Email verified! You can now log in." });
+  } catch (error) {
+    console.error("Verification error:", error);
+    res.status(500).json({ error: "Internal server error!" });
+  }
+});
+
+// Login route with verification check
 app.post("/login", async (req, res) => {
   try {
     const { email, password, userType } = req.body;
-    
-    console.log(email, password, userType);
-    // Check if user exists
-    const user = await User.findOne({ email: email.toLowerCase() });
-    console.log("User found:", user);
 
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(400).json({ error: "User not found!" });
     }
 
-    // Compare passwords
+    if (!user.verified) {
+      return res.status(400).json({ error: "Please verify your email before logging in!" });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid password!" });
     }
 
-    if (userType != user.userType) {
+    if (userType !== user.userType) {
       return res.status(400).json({ error: "Invalid user type!" });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
       { id: user._id, userType: user.userType },
       process.env.JWT_SECRET || "somekey",
