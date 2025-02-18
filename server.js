@@ -83,7 +83,7 @@ app.post("/register", async (req, res) => {
     await newUser.save();
     sendVerificationEmail(email, verificationToken);
 
-    res.status(201).json({ message: "User registered! Check email to verify." });
+    return res.status(201).json({ message: "User registered! Check email to verify." });
   } catch (error) {
     console.log("Registration error:", error);
     return res.status(500).json({ error: "Internal server error!" });
@@ -97,17 +97,17 @@ app.get("/verify", async (req, res) => {
     const user = await User.findOne({ verificationToken: token });
 
     if (!user) {
-      return res.status(400).json({ error: "Invalid or expired token!" });
+      return res.redirect("http://localhost:5173/verify?status=failed");
     }
 
     user.verified = true;
-    user.verificationToken = null; 
+    user.verificationToken = null;
     await user.save();
 
-    res.status(200).json({ message: "Email verified! You can now log in." });
+    return res.redirect("http://localhost:5173/verify?status=success");
   } catch (error) {
     console.error("Verification error:", error);
-    res.status(500).json({ error: "Internal server error!" });
+    return res.redirect("http://localhost:5173/verify?status=failed");
   }
 });
 

@@ -1,18 +1,27 @@
 import React, { useState } from 'react';
 
-const Register = () => {
-  const [userType, setUserType] = useState('client'); // 'client' or 'admin'
+const EmailVerification = ({ email }) => {
+  return (
+    <div className="flex text-yellow-600 text-xs">
+      Sent verification email to: {email}
+    </div>
+  );
+}
+
+const Register = ({ onNavigate }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     // 'type' is optional here; we'll merge userType on submit
   });
+  // State to track if the verification email was sent
+  const [verificationEmailSent, setVerificationEmailSent] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Merge userType into formData so it goes to the backend
-    const payload = { ...formData, userType };
+    const payload = { ...formData, userType: "client" };
 
     console.log('Registration attempted for:', payload);
 
@@ -26,7 +35,8 @@ const Register = () => {
     
     if (response.ok) {
       localStorage.setItem("token", data.token);
-      alert("Registeration successful");
+      // Instead of alert, set the verification flag to true
+      setVerificationEmailSent(true);
     } else {
       alert(data.error);
     }
@@ -81,7 +91,24 @@ const Register = () => {
                   required
                 />
               </div>
-              
+
+              <div>
+                <span 
+                  className="flex text-xs px-1">Already have an account?
+                  <a
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onNavigate("login");
+                    }}
+                    className="block text-xs px-1 font-medium text-blue-700 cursor-pointer">
+                    Login
+                  </a>
+                </span>
+              </div>
+
+              {verificationEmailSent && <EmailVerification email={formData.email} />}
+
               <button
                 type="submit"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md

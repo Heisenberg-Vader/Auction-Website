@@ -30,7 +30,7 @@ const NavBar = ({ onNavigate }) => {
   );
 };
 
-const AuctionDropdown = ({ onSelectAuction, isLoggedIn }) => {
+const AuctionDropdown = ({ onSelectAuction, isLoggedIn, onNavigate }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAuction, setSelectedAuction] = useState(null);
 
@@ -53,6 +53,16 @@ const AuctionDropdown = ({ onSelectAuction, isLoggedIn }) => {
 
     setIsOpen(false);
   };
+
+  useEffect(() => {
+    if (window.location.pathname === "/verify") {
+      onNavigate("verify");
+    } else if (window.location.pathname === "/login") {
+      onNavigate("login");
+    } else if (window.location.pathname === "/register") {
+      onNavigate("register");
+    }
+  }, [onNavigate]);
 
   return (
     <div className="h-[calc(100vh-72px)] flex items-center justify-center bg-gray-100">
@@ -121,10 +131,16 @@ export default function App() {
     <div className="h-screen w-screen bg-gray-100">
       <NavBar onNavigate={navigateTo} />
 
-      {currentPage === "home" && <AuctionDropdown onSelectAuction={handleSelectAuction} isLoggedIn={isLoggedIn} />}
+      {currentPage === "home" && (
+        <AuctionDropdown
+          onSelectAuction={handleSelectAuction}
+          isLoggedIn={isLoggedIn}
+          onNavigate={navigateTo} // Pass onNavigate to AuctionDropdown
+        />
+      )}
       {currentPage === "login" && <Login onLogin={() => setIsLoggedIn(true)} onNavigate={navigateTo} />}
-      {currentPage === "register" && <Register onNavigate={navigateTo}/>}
-      {currentPage === "verify" && <Verify onNavigate={navigateTo}/>}
+      {currentPage === "register" && <Register onNavigate={navigateTo} />}
+      {currentPage === "verify" && <Verify onNavigate={navigateTo} />}
     </div>
   );
 }

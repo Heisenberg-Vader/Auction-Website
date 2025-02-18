@@ -108,7 +108,7 @@ const Login = ({ onNavigate }) => {
 
               <div>
                 <span 
-                  className="flex text-xs px-2">Don't have an account?
+                  className="flex text-xs px-1">Don't have an account?
                   <a
                     href="#"
                     onClick={(e) => {
