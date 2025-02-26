@@ -35,7 +35,7 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "noreply.auctionquiz@gmail.com",
-    pass: "sffotcermdlvmbql", 
+    pass: process.env.EMAIL_PASS,
   },
 });
 
@@ -76,7 +76,7 @@ app.post("/register", async (req, res) => {
       email,
       password: hashedPassword,
       userType,
-      verified: false, 
+      verified: false,
       verificationToken,
     });
 
@@ -144,6 +144,31 @@ app.post("/login", async (req, res) => {
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({ error: "Internal server error!" });
+  }
+});
+
+// /me endpoint to verify user session from token
+app.get("/me", async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: "Unauthorized: No token provided" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    // Return user info (you can choose which fields to return)
+    res.json({
+      email: user.email,
+      userType: user.userType,
+      verified: user.verified,
+    });
+  } catch (error) {
+    return res.status(401).json({ error: "Invalid token" });
   }
 });
 
