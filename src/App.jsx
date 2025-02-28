@@ -3,7 +3,6 @@ import Login from "./login";
 import Register from "./register";
 import Verify from "./verify";
 
-// NavBar Component remains the same
 const NavBar = ({ onNavigate }) => {
   return (
     <div className="flex justify-between items-center bg-black text-white text-3xl font-bold p-5 px-8">
@@ -27,7 +26,6 @@ const NavBar = ({ onNavigate }) => {
   );
 };
 
-// AuctionDropdown Component without URL detection useEffect
 const AuctionDropdown = ({ onSelectAuction, isLoggedIn }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAuction, setSelectedAuction] = useState(null);
@@ -38,7 +36,7 @@ const AuctionDropdown = ({ onSelectAuction, isLoggedIn }) => {
     { name: "Movie Auction", id: 3 },
   ];
 
-  const handleSelect = (auction) => {
+  const handleSelectAuction = (auction) => {
     if (auction.id !== 1) {
       setSelectedAuction(auction);
       if (!isLoggedIn) {
@@ -70,7 +68,7 @@ const AuctionDropdown = ({ onSelectAuction, isLoggedIn }) => {
                 <div
                   key={auction.id}
                   className="p-2 hover:bg-gray-100 border-none rounded-md cursor-pointer"
-                  onClick={() => handleSelect(auction)}
+                  onClick={() => handleSelectAuction(auction)}
                 >
                   {auction.name}
                 </div>
@@ -81,55 +79,60 @@ const AuctionDropdown = ({ onSelectAuction, isLoggedIn }) => {
       </div>
     </div>
   );
-}
+};
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("home");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(
+    localStorage.getItem("isLoggedIn") === "true"
+  );
   const [selectedAuction, setSelectedAuction] = useState(null);
 
-  // On load, check URL pathname and set currentPage accordingly
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path === "/verify") {
-      setCurrentPage("verify");
-    } else if (path === "/login") {
-      setCurrentPage("login");
-    } else if (path === "/register") {
-      setCurrentPage("register");
-    } else if (path === "/dashboard") {
-      setCurrentPage("dashboard");
+    const path = window.location.pathname.replace("/", "");
+    if (["verify", "login", "register", "dashboard"].includes(path)) {
+      setCurrentPage(path);
     } else {
       setCurrentPage("home");
     }
   }, []);
 
-  // Verify token from localStorage with backend /me endpoint
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    console.log("Checking token on mount:", token);
-    
-    if (token) {
-      fetch("http://localhost:5000/me", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => {
-          if (res.ok) {
-            setIsLoggedIn(true);
-          } else {
-            setIsLoggedIn(false);
-            localStorage.removeItem("token");
-          }
-        })
-        .catch((err) => {
-          console.error("Error verifying token:", err);
-          setIsLoggedIn(false);
-          localStorage.removeItem("token");
-        });
-    }
-  }, [currentPage]);
+    const fetchUserStatus = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIsLoggedIn(false);
+        localStorage.setItem("isLoggedIn", "false");
+        return;
+      }
 
-  // navigateTo updates state and URL
+      try {
+        const response = await fetch("http://localhost:5000/me", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setIsLoggedIn(true);
+          localStorage.setItem("isLoggedIn", "true");
+        } else {
+          console.error("Failed to fetch user data:", data.error);
+          setIsLoggedIn(false);
+          localStorage.setItem("isLoggedIn", "false");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setIsLoggedIn(false);
+        localStorage.setItem("isLoggedIn", "false");
+      }
+    };
+
+    fetchUserStatus();
+  }, []);
+
   const navigateTo = (page) => {
     setCurrentPage(page);
     window.history.pushState({}, "", `/${page}`);
@@ -138,8 +141,7 @@ export default function App() {
   const handleSelectAuction = (auction) => {
     if (isLoggedIn) {
       setSelectedAuction(auction);
-      setCurrentPage("dashboard");
-      window.history.pushState({}, "", `/dashboard`);
+      navigateTo("dashboard");
       console.log("success");
     } else {
       alert("You are not logged in!");
@@ -147,23 +149,23 @@ export default function App() {
     }
   };
 
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    localStorage.setItem("isLoggedIn", "true"); 
+  };
+  
   return (
     <div className="h-screen w-screen bg-gray-100">
       <NavBar onNavigate={navigateTo} />
-      {currentPage === "home" && (
-        <AuctionDropdown onSelectAuction={handleSelectAuction} isLoggedIn={isLoggedIn} />
-      )}
       {currentPage === "login" && (
-        <Login onLogin={() => setIsLoggedIn(true)} onNavigate={navigateTo} />
+        <Login onLogin={handleLogin} onNavigate={navigateTo} />
       )}
       {currentPage === "register" && <Register onNavigate={navigateTo} />}
       {currentPage === "verify" && <Verify onNavigate={navigateTo} />}
-      {currentPage === "dashboard" && selectedAuction && (
-        <div className="p-10">
-          <h2 className="text-3xl font-bold">Welcome to {selectedAuction.name} Dashboard</h2>
-          <p className="text-lg mt-2">Here you can place bids, view items, and manage your auctions.</p>
-        </div>
+      {currentPage === "home" && (
+        <AuctionDropdown onSelectAuction={handleSelectAuction} isLoggedIn={isLoggedIn} />
       )}
     </div>
   );
+  
 }

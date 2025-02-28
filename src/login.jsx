@@ -1,17 +1,15 @@
 import React, { useState } from 'react';
 
-const Login = ({ onNavigate }) => {
+const Login = ({ onNavigate, onLogin }) => {
   const [userType, setUserType] = useState('client'); // 'client' or 'admin'
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    // 'type' is optional here; we'll merge userType on submit
   });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Merge userType into formData so it goes to the backend
     const payload = { ...formData, userType };
 
     console.log('Login attempted for:', payload);
@@ -19,14 +17,17 @@ const Login = ({ onNavigate }) => {
     const response = await fetch("http://localhost:5000/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload), // Include userType here
+      body: JSON.stringify(payload),
     });
-  
+
     const data = await response.json();
-    
+
     if (response.ok) {
       localStorage.setItem("token", data.token);
+      localStorage.setItem("isLoggedIn", "true"); 
+      onLogin(); 
       alert("Login successful");
+      onNavigate("home");
     } else {
       alert(data.error);
     }

@@ -26,6 +26,7 @@ const UserSchema = new mongoose.Schema({
   userType: { type: String, required: true },
   verified: { type: Boolean, default: false },
   verificationToken: { type: String },
+  isLoggedIn: {type: Boolean, default: false },
 });
 
 const User = mongoose.model("User", UserSchema);
@@ -78,6 +79,7 @@ app.post("/register", async (req, res) => {
       userType,
       verified: false,
       verificationToken,
+      isLoggedIn: false
     });
 
     await newUser.save();
@@ -116,6 +118,8 @@ app.post("/login", async (req, res) => {
   try {
     const { email, password, userType } = req.body;
 
+    console.log(email, password, userType);
+
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(400).json({ error: "User not found!" });
@@ -133,6 +137,11 @@ app.post("/login", async (req, res) => {
     if (userType !== user.userType) {
       return res.status(400).json({ error: "Invalid user type!" });
     }
+
+    await User.updateOne({ _id: user._id }, { $set: { isLoggedIn: true } });
+
+    const updatedUser = await User.findOne({ email: email.toLowerCase() });
+    console.log("Updated User:", updatedUser);
 
     const token = jwt.sign(
       { id: user._id, userType: user.userType },
@@ -161,16 +170,18 @@ app.get("/me", async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
-    // Return user info (you can choose which fields to return)
+
     res.json({
       email: user.email,
       userType: user.userType,
       verified: user.verified,
+      isLoggedIn: user.isLoggedIn,
     });
   } catch (error) {
     return res.status(401).json({ error: "Invalid token" });
   }
 });
+
 
 // Start server
 const PORT = process.env.PORT || 5000;
