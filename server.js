@@ -7,7 +7,8 @@ import cors from "cors";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 
-dotenv.config(); // Load environment variables
+// Configure environment variables
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -19,7 +20,7 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// User schema and model
+// User schema
 const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
@@ -33,9 +34,9 @@ const User = mongoose.model("User", UserSchema);
 
 // Configure email transporter
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  service: process.env.EMAIL_SERV,
   auth: {
-    user: "noreply.auctionquiz@gmail.com",
+    user: process.env.EMAIL,
     pass: process.env.EMAIL_PASS,
   },
 });
@@ -45,7 +46,7 @@ const sendVerificationEmail = async (email, token) => {
   const verificationLink = `http://localhost:5000/verify?token=${token}`;
 
   const mailOptions = {
-    from: "noreply.auctionquiz@gmail.com",
+    from: process.env.EMAIL,
     to: email,
     subject: "Email Verification",
     text: `Click the link to verify your email: ${verificationLink}`,
@@ -156,7 +157,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// /me endpoint to verify user session from token
+// Endpoint to verify user session from token
 app.get("/me", async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {

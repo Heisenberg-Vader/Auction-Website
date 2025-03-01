@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Login from "./login";
 import Register from "./register";
 import Verify from "./verify";
+import Dashboard from "./dashboard";
 
 const NavBar = ({ onNavigate }) => {
   return (

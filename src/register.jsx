@@ -12,15 +12,14 @@ const Register = ({ onNavigate }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    // 'type' is optional here; we'll merge userType on submit
   });
+
   // State to track if the verification email was sent
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Merge userType into formData so it goes to the backend
     const payload = { ...formData, userType: "client" };
 
     console.log('Registration attempted for:', payload);
@@ -28,14 +27,13 @@ const Register = ({ onNavigate }) => {
     const response = await fetch("http://localhost:5000/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload), // Include userType here
+      body: JSON.stringify(payload),
     });
   
     const data = await response.json();
     
     if (response.ok) {
       localStorage.setItem("token", data.token);
-      // Instead of alert, set the verification flag to true
       setVerificationEmailSent(true);
     } else {
       alert(data.error);
