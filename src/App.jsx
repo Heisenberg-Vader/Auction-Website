@@ -4,7 +4,7 @@ import Register from "./register";
 import Verify from "./verify";
 import Dashboard from "./dashboard";
 
-const NavBar = ({ onNavigate }) => {
+const NavBar = ({ onNavigate, isLoggedIn, onLogout }) => {
   return (
     <div className="flex justify-between items-center bg-black text-white text-3xl font-bold p-5 px-8">
       <div
@@ -15,13 +15,15 @@ const NavBar = ({ onNavigate }) => {
         <h1 className="text-2xl">Auction</h1>
       </div>
       <div>
-        <button
-          onClick={() => onNavigate("login")}
-          className="relative flex items-center text-lg group cursor-pointer"
-        >
-          <span className="absolute left-0 bottom-0 h-[2px] w-3/4 bg-white scale-x-0 transition-transform duration-500 origin-left group-hover:scale-x-135"></span>
-          Login
-        </button>
+        {isLoggedIn ? (
+          <button onClick={onLogout} className="text-lg group cursor-pointer">
+            Logout
+          </button>
+        ) : (
+          <button onClick={() => onNavigate("login")} className="text-lg group cursor-pointer">
+            Login
+          </button>
+        )}
       </div>
     </div>
   );
@@ -90,6 +92,11 @@ export default function App() {
   const [selectedAuction, setSelectedAuction] = useState(null);
 
   useEffect(() => {
+    const storedLoginState = localStorage.getItem("isLoggedIn") === "true";
+    setIsLoggedIn(storedLoginState);
+  }, [currentPage]);
+
+  useEffect(() => {
     const path = window.location.pathname.replace("/", "");
     if (["verify", "login", "register", "dashboard"].includes(path)) {
       setCurrentPage(path);
@@ -132,7 +139,7 @@ export default function App() {
     };
 
     fetchUserStatus();
-  }, []);
+  }, [isLoggedIn]);
 
   const navigateTo = (page) => {
     setCurrentPage(page);
@@ -150,14 +157,28 @@ export default function App() {
     }
   };
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    localStorage.setItem("isLoggedIn", "true"); 
+  const handleLogin = (token) => {
+    if (!token) {
+      console.error("Login failed: No token received");
+      return;
+    }
+
+    localStorage.setItem("token", token);
+    localStorage.setItem("isLoggedIn", "true");
+    setIsLoggedIn(true);  
+    navigateTo("home");
   };
   
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.setItem("isLoggedIn", "false");
+    setIsLoggedIn(false);
+    navigateTo("login");
+  };
+
   return (
-    <div className="h-screen w-screen bg-gray-100">
-      <NavBar onNavigate={navigateTo} />
+    <div className="h-screen w-screen bg-gray-100 overflow-hidden">
+      <NavBar onNavigate={navigateTo} isLoggedIn={isLoggedIn} onLogout={handleLogout}/>
       {currentPage === "login" && (
         <Login onLogin={handleLogin} onNavigate={navigateTo} />
       )}
@@ -166,6 +187,12 @@ export default function App() {
       {currentPage === "home" && (
         <AuctionDropdown onSelectAuction={handleSelectAuction} isLoggedIn={isLoggedIn} />
       )}
+      {currentPage === "dashboard" &&
+        (isLoggedIn ? (
+          <Dashboard handleAuction={selectedAuction} isLoggedIn={isLoggedIn} />
+        ) : (
+          navigateTo("login")
+        ))}
     </div>
   );
   

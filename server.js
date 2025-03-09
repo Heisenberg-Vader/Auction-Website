@@ -128,29 +128,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// User Data Endpoint (Keeps isLoggedIn)
-app.get("/me", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.status(401).json({ error: "Unauthorized: No token provided" });
-
-  const token = authHeader.split(" ")[1];
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    if (!user.isLoggedIn) {
-      return res.status(401).json({ error: "Session expired. Please login again." });
-    }
-
-    res.json({ email: user.email, userType: user.userType, verified: user.verified, isLoggedIn: user.isLoggedIn });
-  } catch (error) {
-    return res.status(401).json({ error: "Invalid token" });
-  }
-});// Endpoint to verify user session from token
+// Endpoint to verify user session from token
 app.get("/me", async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
@@ -210,23 +188,6 @@ app.post("/logout", async (req, res) => {
   } catch (error) {
     console.error("Logout error:", error);
     return res.status(401).json({ error: "Invalid or expired token" });
-  }
-});
-
-// Logout Route
-app.post("/logout", async (req, res) => {
-  try {
-    const { email } = req.body;
-    const user = await User.findOneAndUpdate({ email: email.toLowerCase() }, { isLoggedIn: false });
-
-    if (!user) {
-      return res.status(400).json({ error: "User not found!" });
-    }
-
-    res.json({ message: "Logged out successfully!" });
-  } catch (error) {
-    console.error("Logout error:", error);
-    res.status(500).json({ error: "Internal server error!" });
   }
 });
 
