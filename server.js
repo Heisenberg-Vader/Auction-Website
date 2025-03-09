@@ -7,32 +7,28 @@ import cors from "cors";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 
-// Configure environment variables
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Connect to MongoDB
 mongoose
   .connect("mongodb://127.0.0.1:27017/auctionDB", {})
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
-// User schema
 const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true },
   password: { type: String, required: true },
   userType: { type: String, required: true },
   verified: { type: Boolean, default: false },
   verificationToken: { type: String },
-  isLoggedIn: {type: Boolean, default: false },
+  isLoggedIn: { type: Boolean, default: false },
 });
 
 const User = mongoose.model("User", UserSchema);
 
-// Configure email transporter
 const transporter = nodemailer.createTransport({
   service: process.env.EMAIL_SERV,
   auth: {
@@ -41,7 +37,6 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Send email verification
 const sendVerificationEmail = async (email, token) => {
   const verificationLink = `http://localhost:5000/verify?token=${token}`;
 
@@ -53,53 +48,40 @@ const sendVerificationEmail = async (email, token) => {
   };
 
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("Verification email sent:", info.response);
+    await transporter.sendMail(mailOptions);
+    console.log("Verification email sent");
   } catch (error) {
     console.error("Error sending email:", error);
   }
 };
 
-// Register route with email verification
 app.post("/register", async (req, res) => {
   try {
     const { email, password, userType } = req.body;
-
     const existingUser = await User.findOne({ email: email.toLowerCase() });
-    if (existingUser) {
-      return res.status(400).json({ error: "User already exists!" });
-    }
+    if (existingUser) return res.status(400).json({ error: "User already exists!" });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const verificationToken = crypto.randomBytes(32).toString("hex");
 
-    const newUser = new User({
-      email,
-      password: hashedPassword,
-      userType,
-      verified: false,
-      verificationToken,
-      isLoggedIn: false
-    });
-
+    const newUser = new User({ email, password: hashedPassword, userType, verificationToken });
     await newUser.save();
     sendVerificationEmail(email, verificationToken);
 
-    return res.status(201).json({ message: "User registered! Check email to verify." });
+    res.status(201).json({ message: "User registered! Check email to verify." });
   } catch (error) {
     console.log("Registration error:", error);
-    return res.status(500).json({ error: "Internal server error!" });
+    res.status(500).json({ error: "Internal server error!" });
   }
 });
 
-// Email verification route
 app.get("/verify", async (req, res) => {
   try {
     const { token } = req.query;
     const user = await User.findOne({ verificationToken: token });
 
-    if (!user) {
+    if (!user){
       return res.redirect("http://localhost:5173/verify?status=failed");
     }
 
@@ -107,25 +89,21 @@ app.get("/verify", async (req, res) => {
     user.verificationToken = null;
     await user.save();
 
-    return res.redirect("http://localhost:5173/verify?status=success");
+    res.redirect("http://localhost:5173/verify?status=success");
   } catch (error) {
     console.error("Verification error:", error);
-    return res.redirect("http://localhost:5173/verify?status=failed");
+    res.redirect("http://localhost:5173/verify?status=failed");
   }
 });
 
-// Login route with verification check
 app.post("/login", async (req, res) => {
   try {
     const { email, password, userType } = req.body;
-
-    console.log(email, password, userType);
-
     const user = await User.findOne({ email: email.toLowerCase() });
+
     if (!user) {
       return res.status(400).json({ error: "User not found!" });
     }
-
     if (!user.verified) {
       return res.status(400).json({ error: "Please verify your email before logging in!" });
     }
@@ -134,42 +112,66 @@ app.post("/login", async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid password!" });
     }
-
     if (userType !== user.userType) {
       return res.status(400).json({ error: "Invalid user type!" });
     }
 
-    await User.updateOne({ _id: user._id }, { $set: { isLoggedIn: true } });
+    user.isLoggedIn = true;
+    await user.save();
 
-    const updatedUser = await User.findOne({ email: email.toLowerCase() });
-    console.log("Updated User:", updatedUser);
+    const token = jwt.sign({ id: user._id, userType: user.userType }, process.env.JWT_SECRET || "somekey", { expiresIn: "1h" });
 
-    const token = jwt.sign(
-      { id: user._id, userType: user.userType },
-      process.env.JWT_SECRET || "somekey",
-      { expiresIn: "1h" }
-    );
-
-    return res.json({ message: "Login successful!", token });
+    res.json({ message: "Login successful!", token });
   } catch (error) {
     console.error("Login error:", error);
-    return res.status(500).json({ error: "Internal server error!" });
+    res.status(500).json({ error: "Internal server error!" });
   }
 });
 
-// Endpoint to verify user session from token
+// User Data Endpoint (Keeps isLoggedIn)
 app.get("/me", async (req, res) => {
   const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ error: "Unauthorized: No token provided" });
-  }
+  if (!authHeader) return res.status(401).json({ error: "Unauthorized: No token provided" });
 
   const token = authHeader.split(" ")[1];
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.id);
     if (!user) {
       return res.status(404).json({ error: "User not found" });
+    }
+
+    if (!user.isLoggedIn) {
+      return res.status(401).json({ error: "Session expired. Please login again." });
+    }
+
+    res.json({ email: user.email, userType: user.userType, verified: user.verified, isLoggedIn: user.isLoggedIn });
+  } catch (error) {
+    return res.status(401).json({ error: "Invalid token" });
+  }
+});// Endpoint to verify user session from token
+app.get("/me", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: "Unauthorized: No token provided" });
+    }
+
+    const token = authHeader.split(" ")[1]; // Extract token from "Bearer <token>"
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized: Token missing" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "somekey");
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (!user.isLoggedIn) {
+      return res.status(401).json({ error: "Session expired. Please login again." });
     }
 
     res.json({
@@ -179,11 +181,54 @@ app.get("/me", async (req, res) => {
       isLoggedIn: user.isLoggedIn,
     });
   } catch (error) {
-    return res.status(401).json({ error: "Invalid token" });
+    console.error("Token verification error:", error);
+    return res.status(401).json({ error: "Invalid or expired token" });
   }
 });
 
+// Logout Route (Clears isLoggedIn status)
+app.post("/logout", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ error: "Unauthorized: No token provided" });
+    }
 
-// Start server
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ error: "Unauthorized: Token missing" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "somekey");
+    const user = await User.findByIdAndUpdate(decoded.id, { isLoggedIn: false });
+
+    if (!user) {
+      return res.status(400).json({ error: "User not found!" });
+    }
+
+    res.json({ message: "Logged out successfully!" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
+});
+
+// Logout Route
+app.post("/logout", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOneAndUpdate({ email: email.toLowerCase() }, { isLoggedIn: false });
+
+    if (!user) {
+      return res.status(400).json({ error: "User not found!" });
+    }
+
+    res.json({ message: "Logged out successfully!" });
+  } catch (error) {
+    console.error("Logout error:", error);
+    res.status(500).json({ error: "Internal server error!" });
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
