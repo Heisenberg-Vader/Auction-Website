@@ -56,7 +56,7 @@ const Dashboard = ({ handleAuction, isLoggedIn, onLogout }) => {
 
       {/* Main Content */}
       <main className="flex-1 p-6">
-        <h1 className="text-3xl font-bold mb-6">Welcome to Your Dashboard</h1>
+        <h1 className="text-3xl font-bold mb-6">Welcome to Your Dashboard!</h1>
 
         {selectedTab === "overview" && (
           <div className="bg-white p-6 rounded-lg shadow-md">
