@@ -1,61 +1,102 @@
 /* NOT FINAL YET, SUBJECT TO EDITS
-this looks a little weird, would like to change design a bit */
+Updated but needs more addition of content of cards etc... */
 
 import React, { useState } from "react";
-import { FiHome, FiSettings, FiLogOut, FiBarChart2 } from "react-icons/fi";
+import { FiMenu, FiX, FiHome, FiBarChart2, FiSettings } from "react-icons/fi";
 
-const Dashboard = ({ handleAuction, isLoggedIn, onLogout }) => {
+const Dashboard = ({ handleAuction, isLoggedIn }) => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("overview");
 
   if (!isLoggedIn) {
-    return <div className="h-screen flex justify-center items-center text-xl">Please log in.</div>;
+    return (
+      <div className="h-screen flex justify-center items-center text-xl">
+        Please log in.
+      </div>
+    );
   }
 
   return (
-    <div className="h-screen flex bg-gray-100">
-      {/* Sidebar */}
-      <aside className="w-64 bg-black text-white p-5 flex flex-col">
-        <h2 className="text-2xl font-bold mb-8">Dashboard</h2>
-        <nav className="flex-1 space-y-4">
+    <div className="relative min-h-screen bg-gray-100 pt-14 flex transition-all duration-300">
+      {/* SIDEBAR */}
+      <aside
+        className={`
+          fixed top-16 left-0 h-[calc(100vh-3rem)] bg-black text-white 
+          transition-all duration-500 delay-200 flex flex-col p-4
+          ${isSidebarOpen ? "w-60" : "w-20"}
+        `}
+      >
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between mb-6">
+          {/* Cross Button */}
+          {isSidebarOpen && (
+            <button className="text-white" onClick={() => setIsSidebarOpen(false)}>
+              <FiX size={24} />
+            </button>
+          )}
+
+          {/* Hamburger button */}
+          {!isSidebarOpen && (
+            <button className="text-white ml-3" onClick={() => setIsSidebarOpen(true)}>
+              <FiMenu size={24} />
+            </button>
+          )}
+        </div>
+
+        {/* Navigation Menu */}
+        <nav className="space-y-4">
           <button
-            className={`flex items-center space-x-3 px-4 py-2 w-full text-lg ${
+            className={`flex items-center px-4 py-2 w-full text-lg transition-all duration-300 ${
               selectedTab === "overview" ? "bg-gray-700 rounded-lg" : ""
             }`}
             onClick={() => setSelectedTab("overview")}
           >
             <FiHome size={20} />
-            <span>Overview</span>
+            <span
+              className={`overflow-hidden transition-all duration-500 ${
+                isSidebarOpen ? "ml-3 opacity-100 w-auto" : "ml-0 opacity-0 w-0"
+              }`}
+            >
+              Overview
+            </span>
           </button>
+
           <button
-            className={`flex items-center space-x-3 px-4 py-2 w-full text-lg ${
+            className={`flex items-center px-4 py-2 w-full text-lg transition-all duration-300 ${
               selectedTab === "bids" ? "bg-gray-700 rounded-lg" : ""
             }`}
             onClick={() => setSelectedTab("bids")}
           >
             <FiBarChart2 size={20} />
-            <span>My Bids</span>
+            <span
+              className={`overflow-hidden transition-all duration-500 ${
+                isSidebarOpen ? "ml-3 opacity-100 w-auto" : "ml-0 opacity-0 w-0"
+              }`}
+            >
+              My Bids
+            </span>
           </button>
+
           <button
-            className={`flex items-center space-x-3 px-4 py-2 w-full text-lg ${
+            className={`flex items-center px-4 py-2 w-full text-lg transition-all duration-300 ${
               selectedTab === "settings" ? "bg-gray-700 rounded-lg" : ""
             }`}
             onClick={() => setSelectedTab("settings")}
           >
             <FiSettings size={20} />
-            <span>Settings</span>
+            <span
+              className={`overflow-hidden transition-all duration-500 ${
+                isSidebarOpen ? "ml-3 opacity-100 w-auto" : "ml-0 opacity-0 w-0"
+              }`}
+            >
+              Settings
+            </span>
           </button>
         </nav>
-        <button
-          className="mt-auto flex items-center space-x-3 px-4 py-2 text-lg bg-red-500 hover:bg-red-600 rounded-lg"
-          onClick={onLogout}
-        >
-          <FiLogOut size={20} />
-          <span>Logout</span>
-        </button>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-6">
+      {/* MAIN CONTENT */}
+      <main className={`p-8 transition-all duration-500 ${isSidebarOpen ? "ml-60" : "ml-24"}`}>
         <h1 className="text-3xl font-bold mb-6">Welcome to Your Dashboard!</h1>
 
         {selectedTab === "overview" && (
@@ -77,7 +118,7 @@ const Dashboard = ({ handleAuction, isLoggedIn, onLogout }) => {
         {selectedTab === "settings" && (
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold">Settings</h2>
-            <p className="text-gray-600 mt-2">// Will add settings for users 🥰</p>
+            <p className="text-gray-600 mt-2">User preferences will be added soon!</p>
           </div>
         )}
       </main>

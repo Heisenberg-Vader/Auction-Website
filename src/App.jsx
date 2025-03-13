@@ -16,12 +16,22 @@ const NavBar = ({ onNavigate, isLoggedIn, onLogout }) => {
       </div>
       <div>
         {isLoggedIn ? (
-          <button onClick={onLogout} className="text-lg group cursor-pointer">
-            Logout
+          <button
+            onClick={onLogout}
+            className="relative text-lg group cursor-pointer"
+          >
+            <span className="relative">Logout</span>
+            <span className="absolute left-0 bottom-0 h-[2px] w-full bg-white scale-x-0 transform 
+            origin-left transition-transform duration-500 ease-out group-hover:scale-x-100"></span>
           </button>
         ) : (
-          <button onClick={() => onNavigate("login")} className="text-lg group cursor-pointer">
-            Login
+          <button
+            onClick={() => onNavigate("login")}
+            className="relative text-lg group cursor-pointer"
+          >
+            <span className="relative">Login</span>
+            <span className="absolute left-0 bottom-0 h-[2px] w-full bg-white scale-x-0 transform 
+            origin-left transition-transform duration-500 ease-out group-hover:scale-x-100"></span>
           </button>
         )}
       </div>
