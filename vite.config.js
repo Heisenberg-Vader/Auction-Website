@@ -6,8 +6,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   base: '/Auction-Website/',
-  // server: {
-  //   host: '0.0.0.0', 
-  //   port: 5173
-  // }
+  server: {
+    host: true, // Updated to use boolean instead of string
+    port: 5173
+  }
 })
