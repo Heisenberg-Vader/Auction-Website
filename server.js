@@ -13,6 +13,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+const jwtToken = process.env.JWT_SECRET || "somekey"; 
+
 mongoose
   .connect("mongodb://127.0.0.1:27017/auctionDB", {})
   .then(() => console.log("MongoDB connected"))
@@ -119,7 +121,7 @@ app.post("/login", async (req, res) => {
     user.isLoggedIn = true;
     await user.save();
 
-    const token = jwt.sign({ id: user._id, userType: user.userType }, process.env.JWT_SECRET || "somekey", { expiresIn: "1h" });
+    const token = jwt.sign({ id: user._id, userType: user.userType }, jwtToken || "somekey", { expiresIn: "1h" });
 
     res.json({ message: "Login successful!", token });
   } catch (error) {
@@ -141,7 +143,7 @@ app.get("/me", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized: Token missing" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "somekey");
+    const decoded = jwt.verify(token, jwtToken || "somekey");
     const user = await User.findById(decoded.id);
     
     if (!user) {
@@ -177,7 +179,7 @@ app.post("/logout", async (req, res) => {
       return res.status(401).json({ error: "Unauthorized: Token missing" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "somekey");
+    const decoded = jwt.verify(token, jwtToken || "somekey");
     const user = await User.findByIdAndUpdate(decoded.id, { isLoggedIn: false });
 
     if (!user) {

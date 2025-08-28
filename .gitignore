@@ -25,4 +25,4 @@ dist-ssr
 audit-report.json
 
 # Env files
-req.env
+.env
