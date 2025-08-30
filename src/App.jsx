@@ -3,6 +3,7 @@ import Login from "./login";
 import Register from "./register";
 import Verify from "./verify";
 import Dashboard from "./dashboard";
+import auctionIcon from "/images/auction.png";
 
 const NavBar = ({ onNavigate, isLoggedIn, onLogout }) => {
   return (
@@ -11,7 +12,7 @@ const NavBar = ({ onNavigate, isLoggedIn, onLogout }) => {
         className="flex items-center space-x-4 cursor-pointer"
         onClick={() => onNavigate("home")}
       >
-        <img src="/images/auction.png" className="w-8 h-8" alt="Auction Hammer" />
+        <img src={auctionIcon} className="w-8 h-8" alt="Auction Hammer" />
         <h1 className="text-2xl">Auction</h1>
       </div>
       <div>
