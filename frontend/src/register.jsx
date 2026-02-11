@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL, fetchCsrfToken } from './App';
 
 const EmailVerification = ({ email }) => {
   return (
@@ -19,20 +20,22 @@ const Register = ({ onNavigate }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const csrfToken = await fetchCsrfToken();
     const payload = { ...formData, userType: "client" };
 
-    console.log('Registration attempted for:', payload);
-
-    const response = await fetch("http://localhost:5000/register", {
+    const response = await fetch(`${API_URL}/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+      },
+      credentials: "include",
       body: JSON.stringify(payload),
     });
 
     const data = await response.json();
 
     if (response.ok) {
-      localStorage.setItem("token", data.token);
       setVerificationEmailSent(true);
     } else {
       alert(data.error);

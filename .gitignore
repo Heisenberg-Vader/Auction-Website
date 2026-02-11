@@ -26,3 +26,6 @@ audit-report.json
 
 # Env files
 .env
+
+# SSL certs
+backend/certs/

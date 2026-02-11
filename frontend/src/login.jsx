@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { API_URL, fetchCsrfToken } from './App';
 
 const Login = ({ onNavigate, onLogin }) => {
   const [userType, setUserType] = useState('client');
@@ -10,24 +11,24 @@ const Login = ({ onNavigate, onLogin }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const csrfToken = await fetchCsrfToken();
     const payload = { ...formData, userType };
 
-    console.log('Login attempted for:', payload);
-
-    const response = await fetch("http://localhost:5000/login", {
+    const response = await fetch(`${API_URL}/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+      },
+      credentials: "include",
       body: JSON.stringify(payload),
     });
 
     const data = await response.json();
 
     if (response.ok) {
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("isLoggedIn", "true");
       onLogin();
       alert("Login successful");
-      onNavigate("home");
     } else {
       alert(data.error);
     }

@@ -10,6 +10,13 @@ import sendVerificationEmail from "../utils/email.js";
 
 const router = express.Router();
 
+const COOKIE_OPTIONS = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 60 * 60 * 1000
+};
+
 router.use(['/register', '/login'], authLimiter);
 
 router.post("/register", async (req, res) => {
@@ -58,7 +65,7 @@ router.post("/register", async (req, res) => {
             });
         }
     } catch (error) {
-        console.log("Registration error:", error);
+        console.error("Registration error:", error);
         res.status(500).json({ error: "Internal server error!" });
     }
 });
@@ -66,27 +73,29 @@ router.post("/register", async (req, res) => {
 router.get("/verify", async (req, res) => {
     try {
         const { token } = req.query;
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
 
         const sanitizedToken = sanitizeInput(token);
 
         if (!sanitizedToken) {
-            return res.redirect("http://localhost:5173/verify?status=failed");
+            return res.redirect(`${frontendUrl}/verify?status=failed`);
         }
 
         const user = await User.findOne({ verificationToken: sanitizedToken });
 
         if (!user) {
-            return res.redirect("http://localhost:5173/verify?status=failed");
+            return res.redirect(`${frontendUrl}/verify?status=failed`);
         }
 
         user.verified = true;
         user.verificationToken = null;
         await user.save();
 
-        res.redirect("http://localhost:5173/verify?status=success");
+        res.redirect(`${frontendUrl}/verify?status=success`);
     } catch (error) {
         console.error("Verification error:", error);
-        res.redirect("http://localhost:5173/verify?status=failed");
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        res.redirect(`${frontendUrl}/verify?status=failed`);
     }
 });
 
@@ -136,7 +145,8 @@ router.post("/login", async (req, res) => {
 
         const token = jwt.sign({ id: user._id, userType: user.userType }, jwtSecret, { expiresIn: "1h" });
 
-        res.json({ message: "Login successful!", token });
+        res.cookie("token", token, COOKIE_OPTIONS);
+        res.json({ message: "Login successful!" });
     } catch (error) {
         console.error("Login error:", error);
         res.status(500).json({ error: "Internal server error!" });
@@ -175,6 +185,7 @@ router.post("/logout", verifyToken, async (req, res) => {
             return res.status(400).json({ error: "User not found!" });
         }
 
+        res.clearCookie("token", COOKIE_OPTIONS);
         res.json({ message: "Logged out successfully!" });
     } catch (error) {
         console.error("Logout error:", error);

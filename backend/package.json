@@ -5,10 +5,12 @@
     "type": "module",
     "scripts": {
         "dev": "nodemon server.js",
-        "start": "node server.js"
+        "start": "node server.js",
+        "generate-certs": "node generate-certs.js"
     },
     "dependencies": {
         "bcryptjs": "^3.0.0",
+        "cookie-parser": "^1.4.7",
         "cors": "^2.8.5",
         "dotenv": "^17.2.1",
         "express": "^5.1.0",
@@ -20,6 +22,7 @@
         "xss": "^1.0.15"
     },
     "devDependencies": {
-        "nodemon": "^3.1.9"
+        "nodemon": "^3.1.9",
+        "selfsigned": "^5.5.0"
     }
 }

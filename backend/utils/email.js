@@ -1,16 +1,24 @@
 import nodemailer from "nodemailer";
 import { sanitizeInput } from "../middleware/sanitize.js";
 
-const transporter = nodemailer.createTransport({
-    service: process.env.EMAIL_SERV,
-    auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+let transporter = null;
+
+const getTransporter = () => {
+    if (!transporter) {
+        transporter = nodemailer.createTransport({
+            service: process.env.EMAIL_SERV,
+            auth: {
+                user: process.env.EMAIL,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+    }
+    return transporter;
+};
 
 const sendVerificationEmail = async (email, token) => {
-    const verificationLink = `http://localhost:5000/verify?token=${token}`;
+    const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
+    const verificationLink = `${backendUrl}/verify?token=${token}`;
 
     const mailOptions = {
         from: process.env.EMAIL,
@@ -31,7 +39,7 @@ const sendVerificationEmail = async (email, token) => {
     };
 
     try {
-        await transporter.sendMail(mailOptions);
+        await getTransporter().sendMail(mailOptions);
         console.log("Verification email sent");
         return true;
     } catch (error) {
