@@ -1,6 +1,3 @@
-/* NOT FINAL YET, SUBJECT TO EDITS
-Updated but needs more addition of content of cards etc... */
-
 import React, { useState } from "react";
 import { FiMenu, FiX, FiHome, FiBarChart2, FiSettings } from "react-icons/fi";
 
@@ -18,7 +15,6 @@ const Dashboard = ({ handleAuction, isLoggedIn }) => {
 
   return (
     <div className="relative min-h-screen bg-gray-100 pt-14 flex transition-all duration-300">
-      {/* SIDEBAR */}
       <aside
         className={`
           fixed top-16 left-0 h-[calc(100vh-3rem)] bg-black text-white 
@@ -26,16 +22,13 @@ const Dashboard = ({ handleAuction, isLoggedIn }) => {
           ${isSidebarOpen ? "w-60" : "w-20"}
         `}
       >
-        {/* Sidebar Header */}
         <div className="flex items-center justify-between mb-6">
-          {/* Cross Button */}
           {isSidebarOpen && (
             <button className="text-white" onClick={() => setIsSidebarOpen(false)}>
               <FiX size={24} />
             </button>
           )}
 
-          {/* Hamburger button */}
           {!isSidebarOpen && (
             <button className="text-white ml-3" onClick={() => setIsSidebarOpen(true)}>
               <FiMenu size={24} />
@@ -43,51 +36,44 @@ const Dashboard = ({ handleAuction, isLoggedIn }) => {
           )}
         </div>
 
-        {/* Navigation Menu */}
         <nav className="space-y-4">
           <button
-            className={`flex items-center px-4 py-2 w-full text-lg transition-all duration-300 ${
-              selectedTab === "overview" ? "bg-gray-700 rounded-lg" : ""
-            }`}
+            className={`flex items-center px-4 py-2 w-full text-lg transition-all duration-300 ${selectedTab === "overview" ? "bg-gray-700 rounded-lg" : ""
+              }`}
             onClick={() => setSelectedTab("overview")}
           >
             <FiHome size={20} />
             <span
-              className={`overflow-hidden transition-all duration-500 ${
-                isSidebarOpen ? "ml-3 opacity-100 w-auto" : "ml-0 opacity-0 w-0"
-              }`}
+              className={`overflow-hidden transition-all duration-500 ${isSidebarOpen ? "ml-3 opacity-100 w-auto" : "ml-0 opacity-0 w-0"
+                }`}
             >
               Overview
             </span>
           </button>
 
           <button
-            className={`flex items-center px-4 py-2 w-full text-lg transition-all duration-300 ${
-              selectedTab === "bids" ? "bg-gray-700 rounded-lg" : ""
-            }`}
+            className={`flex items-center px-4 py-2 w-full text-lg transition-all duration-300 ${selectedTab === "bids" ? "bg-gray-700 rounded-lg" : ""
+              }`}
             onClick={() => setSelectedTab("bids")}
           >
             <FiBarChart2 size={20} />
             <span
-              className={`overflow-hidden transition-all duration-500 ${
-                isSidebarOpen ? "ml-3 opacity-100 w-auto" : "ml-0 opacity-0 w-0"
-              }`}
+              className={`overflow-hidden transition-all duration-500 ${isSidebarOpen ? "ml-3 opacity-100 w-auto" : "ml-0 opacity-0 w-0"
+                }`}
             >
               My Bids
             </span>
           </button>
 
           <button
-            className={`flex items-center px-4 py-2 w-full text-lg transition-all duration-300 ${
-              selectedTab === "settings" ? "bg-gray-700 rounded-lg" : ""
-            }`}
+            className={`flex items-center px-4 py-2 w-full text-lg transition-all duration-300 ${selectedTab === "settings" ? "bg-gray-700 rounded-lg" : ""
+              }`}
             onClick={() => setSelectedTab("settings")}
           >
             <FiSettings size={20} />
             <span
-              className={`overflow-hidden transition-all duration-500 ${
-                isSidebarOpen ? "ml-3 opacity-100 w-auto" : "ml-0 opacity-0 w-0"
-              }`}
+              className={`overflow-hidden transition-all duration-500 ${isSidebarOpen ? "ml-3 opacity-100 w-auto" : "ml-0 opacity-0 w-0"
+                }`}
             >
               Settings
             </span>
@@ -95,7 +81,6 @@ const Dashboard = ({ handleAuction, isLoggedIn }) => {
         </nav>
       </aside>
 
-      {/* MAIN CONTENT */}
       <main className={`p-8 transition-all duration-500 ${isSidebarOpen ? "ml-60" : "ml-24"}`}>
         <h1 className="text-3xl font-bold mb-6">Welcome to Your Dashboard!</h1>
 

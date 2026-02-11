@@ -1,40 +1,34 @@
 import React, { useState } from 'react';
+import { API_URL, fetchCsrfToken } from './App';
 
-const EmailVerification = ({ email }) => {
-  return (
-    <div className="flex text-yellow-600 text-xs">
-      Sent verification email to: {email}
-    </div>
-  );
-}
-
-const Register = ({ onNavigate }) => {
+const Login = ({ onNavigate, onLogin }) => {
+  const [userType, setUserType] = useState('client');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
 
-  // State to track if the verification email was sent
-  const [verificationEmailSent, setVerificationEmailSent] = useState(false);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const payload = { ...formData, userType: "client" };
+    const csrfToken = await fetchCsrfToken();
+    const payload = { ...formData, userType };
 
-    console.log('Registration attempted for:', payload);
-
-    const response = await fetch("http://localhost:5000/register", {
+    const response = await fetch(`${API_URL}/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken
+      },
+      credentials: "include",
       body: JSON.stringify(payload),
     });
-  
+
     const data = await response.json();
-    
+
     if (response.ok) {
-      localStorage.setItem("token", data.token);
-      setVerificationEmailSent(true);
+      onLogin();
+      alert("Login successful");
     } else {
       alert(data.error);
     }
@@ -53,7 +47,28 @@ const Register = ({ onNavigate }) => {
       <div className="w-full max-w-md mx-auto">
         <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
-            <h1 className="text-3xl font-bold text-center text-gray-900">Sign Up</h1>
+            <h1 className="text-3xl font-bold text-center text-gray-900">Login</h1>
+
+            <div className="flex justify-center space-x-4 mt-4">
+              <button
+                onClick={() => setUserType('client')}
+                className={`px-4 py-2 rounded-md ${userType === 'client'
+                  ? 'bg-blue-500 text-white hover:bg-blue-600 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
+                  }`}
+              >
+                Client
+              </button>
+              <button
+                onClick={() => setUserType('admin')}
+                className={`px-4 py-2 rounded-md ${userType === 'admin'
+                  ? 'bg-blue-500 text-white hover:bg-blue-600 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
+                  }`}
+              >
+                Admin
+              </button>
+            </div>
           </div>
 
           <div className="px-6 py-6">
@@ -73,7 +88,7 @@ const Register = ({ onNavigate }) => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
@@ -91,21 +106,19 @@ const Register = ({ onNavigate }) => {
               </div>
 
               <div>
-                <span 
-                  className="flex text-xs px-1">Already have an account?
+                <span
+                  className="flex text-xs px-1">Don't have an account?
                   <a
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
-                      onNavigate("login");
+                      onNavigate("register");
                     }}
                     className="block text-xs px-1 font-medium text-blue-700 cursor-pointer">
-                    Login
+                    Sign Up
                   </a>
                 </span>
               </div>
-
-              {verificationEmailSent && <EmailVerification email={formData.email} />}
 
               <button
                 type="submit"
@@ -113,7 +126,7 @@ const Register = ({ onNavigate }) => {
                 shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 duration-500 focus:outline-none
                 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Sign up
+                Login as {userType === 'client' ? 'Client' : 'Admin'}
               </button>
             </form>
           </div>
@@ -123,4 +136,4 @@ const Register = ({ onNavigate }) => {
   );
 };
 
-export default Register;
+export default Login;
