@@ -14,7 +14,6 @@ const Register = ({ onNavigate }) => {
     password: '',
   });
 
-  // State to track if the verification email was sent
   const [verificationEmailSent, setVerificationEmailSent] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -29,9 +28,9 @@ const Register = ({ onNavigate }) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
-  
+
     const data = await response.json();
-    
+
     if (response.ok) {
       localStorage.setItem("token", data.token);
       setVerificationEmailSent(true);
@@ -73,7 +72,7 @@ const Register = ({ onNavigate }) => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
@@ -91,7 +90,7 @@ const Register = ({ onNavigate }) => {
               </div>
 
               <div>
-                <span 
+                <span
                   className="flex text-xs px-1">Already have an account?
                   <a
                     href="#"

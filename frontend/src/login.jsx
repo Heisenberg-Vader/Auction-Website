@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 const Login = ({ onNavigate, onLogin }) => {
-  const [userType, setUserType] = useState('client'); // 'client' or 'admin'
+  const [userType, setUserType] = useState('client');
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -24,8 +24,8 @@ const Login = ({ onNavigate, onLogin }) => {
 
     if (response.ok) {
       localStorage.setItem("token", data.token);
-      localStorage.setItem("isLoggedIn", "true"); 
-      onLogin(); 
+      localStorage.setItem("isLoggedIn", "true");
+      onLogin();
       alert("Login successful");
       onNavigate("home");
     } else {
@@ -47,26 +47,23 @@ const Login = ({ onNavigate, onLogin }) => {
         <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200">
             <h1 className="text-3xl font-bold text-center text-gray-900">Login</h1>
-            
-            {/* Toggle buttons for user type */}
+
             <div className="flex justify-center space-x-4 mt-4">
               <button
                 onClick={() => setUserType('client')}
-                className={`px-4 py-2 rounded-md ${
-                  userType === 'client'
-                    ? 'bg-blue-500 text-white hover:bg-blue-600 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
-                }`}
+                className={`px-4 py-2 rounded-md ${userType === 'client'
+                  ? 'bg-blue-500 text-white hover:bg-blue-600 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
+                  }`}
               >
                 Client
               </button>
               <button
                 onClick={() => setUserType('admin')}
-                className={`px-4 py-2 rounded-md ${
-                  userType === 'admin'
-                    ? 'bg-blue-500 text-white hover:bg-blue-600 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
-                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
-                }`}
+                className={`px-4 py-2 rounded-md ${userType === 'admin'
+                  ? 'bg-blue-500 text-white hover:bg-blue-600 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
+                  }`}
               >
                 Admin
               </button>
@@ -90,7 +87,7 @@ const Login = ({ onNavigate, onLogin }) => {
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
@@ -108,7 +105,7 @@ const Login = ({ onNavigate, onLogin }) => {
               </div>
 
               <div>
-                <span 
+                <span
                   className="flex text-xs px-1">Don't have an account?
                   <a
                     href="#"
@@ -121,7 +118,7 @@ const Login = ({ onNavigate, onLogin }) => {
                   </a>
                 </span>
               </div>
-              
+
               <button
                 type="submit"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md
