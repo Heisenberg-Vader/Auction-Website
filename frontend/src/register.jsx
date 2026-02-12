@@ -9,7 +9,7 @@ const EmailVerification = ({ email }) => {
   );
 }
 
-const Register = ({ onNavigate }) => {
+const Register = ({ onNavigate, showToast }) => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -38,7 +38,7 @@ const Register = ({ onNavigate }) => {
     if (response.ok) {
       setVerificationEmailSent(true);
     } else {
-      alert(data.error);
+      showToast(data.error, "error");
     }
   };
 

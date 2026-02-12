@@ -9,6 +9,7 @@ import connectDB from "./config/db.js";
 import { limiter } from "./middleware/rateLimiter.js";
 import { generateCsrfToken, validateCsrf } from "./middleware/csrf.js";
 import authRoutes from "./routes/auth.js";
+import teamsRoutes from "./routes/teams.js";
 
 dotenv.config({ path: '../.env' });
 
@@ -36,6 +37,7 @@ connectDB();
 app.get("/csrf-token", generateCsrfToken);
 app.use(validateCsrf);
 app.use(authRoutes);
+app.use("/api", teamsRoutes);
 
 const PORT = process.env.PORT || 5000;
 

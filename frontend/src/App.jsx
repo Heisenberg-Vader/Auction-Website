@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
-import Login from "./login";
-import Register from "./register";
-import Verify from "./verify";
-import Dashboard from "./dashboard";
+import { useState, useEffect, lazy, Suspense } from "react";
 import auctionIcon from "/images/auction.png";
+import { ToastContainer, useToast } from "./Toast";
+
+const Login = lazy(() => import("./login"));
+const Register = lazy(() => import("./register"));
+const Verify = lazy(() => import("./verify"));
+const Dashboard = lazy(() => import("./dashboard"));
 
 const API_URL = "https://localhost:5000";
 
@@ -42,7 +44,7 @@ const NavBar = ({ onNavigate, isLoggedIn, onLogout }) => {
   );
 };
 
-const AuctionDropdown = ({ onSelectAuction, isLoggedIn }) => {
+const AuctionDropdown = ({ onSelectAuction, isLoggedIn, showToast }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedAuction, setSelectedAuction] = useState(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -62,11 +64,11 @@ const AuctionDropdown = ({ onSelectAuction, isLoggedIn }) => {
 
   const handleGoToAuction = () => {
     if (!selectedAuction) {
-      alert("Please select an auction first!");
+      showToast("Please select an auction first!", "warning");
       return;
     }
     if (!isLoggedIn) {
-      alert("You are not logged in!");
+      showToast("You are not logged in!", "error");
       return;
     }
     onSelectAuction(selectedAuction);
@@ -148,6 +150,7 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState("home");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [selectedAuction, setSelectedAuction] = useState(null);
+  const { toast, showToast, removeToast } = useToast();
 
   useEffect(() => {
     const path = window.location.pathname.replace("/", "");
@@ -184,7 +187,7 @@ export default function App() {
     };
 
     fetchUserStatus();
-  }, [currentPage]);
+  }, []);
 
   const navigateTo = (page) => {
     setCurrentPage(page);
@@ -196,7 +199,7 @@ export default function App() {
       setSelectedAuction(auction);
       navigateTo("dashboard");
     } else {
-      alert("You are not logged in!");
+      showToast("You are not logged in!", "error");
     }
   };
 
@@ -225,22 +228,28 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen bg-gray-100 overflow-hidden">
+      <ToastContainer toast={toast} removeToast={removeToast} />
       <NavBar onNavigate={navigateTo} isLoggedIn={isLoggedIn} onLogout={handleLogout} />
-      {currentPage === "login" && (
-        <Login onLogin={handleLogin} onNavigate={navigateTo} />
-      )}
-      {currentPage === "register" && <Register onNavigate={navigateTo} />}
-      {currentPage === "verify" && <Verify onNavigate={navigateTo} />}
-      {currentPage === "home" && (
-        <AuctionDropdown onSelectAuction={handleSelectAuction} isLoggedIn={isLoggedIn} />
-      )}
-      {currentPage === "dashboard" &&
-        (isLoggedIn ? (
-          <Dashboard handleAuction={selectedAuction} isLoggedIn={isLoggedIn} />
-        ) : (
-          navigateTo("login")
-        ))}
+      <Suspense fallback={
+        <div className="h-[calc(100vh-72px)] flex items-center justify-center">
+          <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        </div>
+      }>
+        {currentPage === "login" && (
+          <Login onLogin={handleLogin} onNavigate={navigateTo} showToast={showToast} />
+        )}
+        {currentPage === "register" && <Register onNavigate={navigateTo} showToast={showToast} />}
+        {currentPage === "verify" && <Verify onNavigate={navigateTo} />}
+        {currentPage === "home" && (
+          <AuctionDropdown onSelectAuction={handleSelectAuction} isLoggedIn={isLoggedIn} showToast={showToast} />
+        )}
+        {currentPage === "dashboard" &&
+          (isLoggedIn ? (
+            <Dashboard handleAuction={selectedAuction} isLoggedIn={isLoggedIn} />
+          ) : (
+            navigateTo("login")
+          ))}
+      </Suspense>
     </div>
   );
-
 }

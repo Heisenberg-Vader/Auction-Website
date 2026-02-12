@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { API_URL, fetchCsrfToken } from './App';
 
-const Login = ({ onNavigate, onLogin }) => {
+const Login = ({ onNavigate, onLogin, showToast }) => {
   const [userType, setUserType] = useState('client');
   const [formData, setFormData] = useState({
     email: '',
@@ -28,9 +28,9 @@ const Login = ({ onNavigate, onLogin }) => {
 
     if (response.ok) {
       onLogin();
-      alert("Login successful");
+      showToast("Login successful", "success");
     } else {
-      alert(data.error);
+      showToast(data.error, "error");
     }
   };
 
@@ -57,7 +57,7 @@ const Login = ({ onNavigate, onLogin }) => {
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300 duration-500 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500'
                   }`}
               >
-                Client
+                User
               </button>
               <button
                 onClick={() => setUserType('admin')}
@@ -126,7 +126,7 @@ const Login = ({ onNavigate, onLogin }) => {
                 shadow-sm text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 duration-500 focus:outline-none
                 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
               >
-                Login as {userType === 'client' ? 'Client' : 'Admin'}
+                Login as {userType === 'client' ? 'User' : 'Admin'}
               </button>
             </form>
           </div>
